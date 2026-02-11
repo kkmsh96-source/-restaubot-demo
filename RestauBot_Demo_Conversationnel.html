@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestauBot - Démo IA Conversationnelle Bilingue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2c3e50;
+            --accent: #c9a961;
+            --bg-light: #f8f6f3;
+            --text-dark: #1a1a1a;
+            --text-light: #666;
+            --white: #ffffff;
+            --success: #27ae60;
+            --border: #e0ddd8;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, #f8f6f3 0%, #ede9e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .demo-notice {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .demo-notice h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .demo-notice ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 1.1em;
+            color: var(--text-light);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 30px;
+            animation: fadeInUp 0.8s ease 0.2s backwards;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+        }
+
+        .info-card h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2em;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .booking-tracker {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid var(--accent);
+        }
+
+        .booking-tracker h3 {
+            font-family: 'Cormorant Garamond', serif;
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .booking-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .booking-item:last-child {
+            border-bottom: none;
+        }
+
+        .booking-item.completed {
+            color: var(--success);
+        }
+
+        .booking-item.pending {
+            color: var(--text-light);
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-section:last-child {
+            border-bottom: none;
+        }
+
+        .info-section h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2em;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .info-section p {
+            color: var(--text-light);
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 700px;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .chat-header h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6em;
+            margin-bottom: 5px;
+        }
+
+        .chat-header .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 75%;
+            line-height: 1.5;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+            color: white;
+        }
+
+        .message-sender {
+            font-size: 0.8em;
+            color: var(--text-light);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .message.user .message-sender {
+            text-align: right;
+        }
+
+        .quick-actions {
+            padding: 15px 25px;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .quick-actions-label {
+            font-size: 0.85em;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+            font-family: 'Lato', sans-serif;
+        }
+
+        .action-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .chat-input-area {
+            padding: 15px 25px;
+            background: white;
+            border-radius: 0 0 20px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            font-size: 0.95em;
+            font-family: 'Lato', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .send-btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(44, 62, 80, 0.3);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 18px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            width: fit-content;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .typing-indicator.active {
+            display: inline-block;
+        }
+
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-light);
+            margin: 0 3px;
+            animation: typingAnimation 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            .chat-container {
+                height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="demo-notice">
+            <h3>⚠️ Démo Interactive - Version de Démonstration</h3>
+            <p>Dans la version réelle pour votre restaurant :</p>
+            <ul>
+                <li>✅ Réservations envoyées automatiquement par email/SMS au restaurant</li>
+                <li>✅ Intégration avec votre système (ResDiary, OpenTable, etc.)</li>
+                <li>✅ Base de données clients et historique</li>
+                <li>✅ Rappels automatiques 24h avant par SMS</li>
+                <li>✅ Statistiques et tableau de bord en temps réel</li>
+            </ul>
+            <p style="margin-top: 10px;"><strong>Testez la démo ci-dessous ! 👇</strong></p>
+        </div>
+
+        <div class="header">
+            <h1>RestauBot IA Conversationnel</h1>
+            <p class="subtitle">Agent intelligent bilingue - Français & English</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="info-card">
+                <h2>Le Clair de Lune</h2>
+                
+                <div class="booking-tracker" id="bookingTracker" style="display: none;">
+                    <h3>📋 Réservation en cours</h3>
+                    <div class="booking-item pending" id="trackDate">
+                        <span>⏳</span>
+                        <span>Date</span>
+                    </div>
+                    <div class="booking-item pending" id="trackTime">
+                        <span>⏳</span>
+                        <span>Heure</span>
+                    </div>
+                    <div class="booking-item pending" id="trackPeople">
+                        <span>⏳</span>
+                        <span>Nombre de personnes</span>
+                    </div>
+                    <div class="booking-item pending" id="trackName">
+                        <span>⏳</span>
+                        <span>Nom</span>
+                    </div>
+                    <div class="booking-item pending" id="trackContact">
+                        <span>⏳</span>
+                        <span>Contact</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>📍 Adresse</h3>
+                    <p>25 Fitzwilliam Square<br>Dublin 2, D02 XY89<br>Irlande</p>
+                </div>
+
+                <div class="info-section">
+                    <h3>⏰ Horaires</h3>
+                    <p><strong>Dîner:</strong> Lundi - Samedi<br>
+                    <strong>Déjeuner:</strong> Jeudi - Samedi<br>
+                    <strong>Fermé:</strong> Dimanche et jours fériés</p>
+                </div>
+
+                <div class="info-section">
+                    <h3>📞 Contact</h3>
+                    <p><strong>Téléphone:</strong> 0894768354<br>
+                    <strong>Email:</strong> kkmsh96@gmail.com</p>
+                </div>
+
+                <div class="info-section">
+                    <h3>💡 Services</h3>
+                    <p>• WiFi gratuit<br>
+                    • Chaises hautes<br>
+                    • Rappels SMS automatiques<br>
+                    • Réservation en ligne 24/7</p>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h3>Conversation en Direct</h3>
+                    <div class="status">
+                        <span class="status-dot"></span>
+                        <span>IA disponible 24/7 - Bilingual</span>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot">
+                        <div class="message-sender">RestauBot IA</div>
+                        <div class="message-content">
+                            Bonjour et bienvenue au Clair de Lune ! Je suis votre assistant virtuel. Comment puis-je vous aider aujourd'hui ? 😊<br><br>Hello and welcome to Le Clair de Lune! I'm your virtual assistant. How may I help you today? 😊
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="quick-actions-label">Suggestions rapides:</div>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="quickMessage('Réserver une table')">📅 Réserver</button>
+                        <button class="action-btn" onclick="quickMessage('Book a table')">📅 Book</button>
+                        <button class="action-btn" onclick="quickMessage('Annuler ma réservation')">❌ Annuler</button>
+                        <button class="action-btn" onclick="quickMessage('Where are the bathrooms?')">🚻 Bathrooms</button>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="chat-input-wrapper">
+                        <input 
+                            type="text" 
+                            class="chat-input" 
+                            id="userInput" 
+                            placeholder="Écrivez en français ou en anglais..."
+                        >
+                        <button class="send-btn" id="sendButton">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // État de la conversation
+        let conversationState = {
+            bookingInProgress: false,
+            step: null,
+            language: 'fr',
+            data: {
+                date: null,
+                time: null,
+                people: null,
+                name: null,
+                contact: null
+            }
+        };
+
+        // Détection de langue
+        function detectLanguage(text) {
+            const frenchWords = ['bonjour', 'merci', 'réserv', 'table', 'horaire', 'prix', 'menu', 'où', 'combien', 'avez', 'voudrais', 'personnes', 'annuler'];
+            const englishWords = ['hello', 'thanks', 'book', 'reserve', 'table', 'hours', 'price', 'menu', 'where', 'how', 'have', 'would', 'people', 'cancel'];
+            
+            const lowerText = text.toLowerCase();
+            let frenchScore = 0;
+            let englishScore = 0;
+
+            frenchWords.forEach(word => {
+                if (lowerText.includes(word)) frenchScore++;
+            });
+
+            englishWords.forEach(word => {
+                if (lowerText.includes(word)) englishScore++;
+            });
+
+            return frenchScore > englishScore ? 'fr' : 'en';
+        }
+
+        // Mettre à jour le tracker de réservation
+        function updateBookingTracker() {
+            const tracker = document.getElementById('bookingTracker');
+            
+            if (conversationState.bookingInProgress) {
+                tracker.style.display = 'block';
+                
+                const updateItem = (id, value, label) => {
+                    const item = document.getElementById(id);
+                    if (value) {
+                        item.className = 'booking-item completed';
+                        item.innerHTML = `<span>✓</span><span>${label}: ${value}</span>`;
+                    } else {
+                        item.className = 'booking-item pending';
+                        item.innerHTML = `<span>⏳</span><span>${label}</span>`;
+                    }
+                };
+
+                const lang = conversationState.language;
+                updateItem('trackDate', conversationState.data.date, lang === 'fr' ? 'Date' : 'Date');
+                updateItem('trackTime', conversationState.data.time, lang === 'fr' ? 'Heure' : 'Time');
+                updateItem('trackPeople', conversationState.data.people, lang === 'fr' ? 'Personnes' : 'People');
+                updateItem('trackName', conversationState.data.name, lang === 'fr' ? 'Nom' : 'Name');
+                updateItem('trackContact', conversationState.data.contact, 'Contact');
+            } else {
+                tracker.style.display = 'none';
+            }
+        }
+
+        // Réponses conversationnelles
+        function getAIResponse(userMessage) {
+            const msg = userMessage.toLowerCase();
+            const lang = detectLanguage(userMessage);
+            conversationState.language = lang;
+
+            // PROCESSUS DE RÉSERVATION
+            if (conversationState.bookingInProgress) {
+                if (conversationState.step === 'date') {
+                    conversationState.data.date = userMessage;
+                    conversationState.step = 'time';
+                    updateBookingTracker();
+                    
+                    if (lang === 'fr') {
+                        return `Parfait, ${userMessage}. À quelle heure souhaitez-vous venir ?\n\nNous servons :\n🍽️ Déjeuner : 12h-15h (Jeudi-Samedi)\n🌙 Dîner : 18h-22h (Lundi-Samedi)`;
+                    } else {
+                        return `Perfect, ${userMessage}. What time would you like to come?\n\nWe serve:\n🍽️ Lunch: 12pm-3pm (Thu-Sat)\n🌙 Dinner: 6pm-10pm (Mon-Sat)`;
+                    }
+                }
+
+                if (conversationState.step === 'time') {
+                    conversationState.data.time = userMessage;
+                    conversationState.step = 'people';
+                    updateBookingTracker();
+                    
+                    if (lang === 'fr') {
+                        return `${userMessage}, noté ! 👍\n\nPour combien de personnes ?`;
+                    } else {
+                        return `${userMessage}, noted! 👍\n\nFor how many people?`;
+                    }
+                }
+
+                if (conversationState.step === 'people') {
+                    conversationState.data.people = userMessage;
+                    conversationState.step = 'name';
+                    updateBookingTracker();
+                    
+                    if (lang === 'fr') {
+                        return `Table pour ${userMessage} personnes. Parfait ! 👥\n\nQuel est votre nom ?`;
+                    } else {
+                        return `Table for ${userMessage} people. Perfect! 👥\n\nWhat is your name?`;
+                    }
+                }
+
+                if (conversationState.step === 'name') {
+                    conversationState.data.name = userMessage;
+                    conversationState.step = 'contact';
+                    updateBookingTracker();
+                    
+                    if (lang === 'fr') {
+                        return `Merci ${userMessage} ! 😊\n\nDernière étape : votre numéro de téléphone ou email pour la confirmation ?`;
+                    } else {
+                        return `Thank you ${userMessage}! 😊\n\nLast step: your phone number or email for confirmation?`;
+                    }
+                }
+
+                if (conversationState.step === 'contact') {
+                    conversationState.data.contact = userMessage;
+                    conversationState.bookingInProgress = false;
+                    conversationState.step = null;
+                    updateBookingTracker();
+                    
+                    const summary = conversationState.data;
+                    
+                    if (lang === 'fr') {
+                        return `✅ **Réservation confirmée !**\n\n📋 Récapitulatif :\n• Nom : ${summary.name}\n• Date : ${summary.date}\n• Heure : ${summary.time}\n• Personnes : ${summary.people}\n• Contact : ${summary.contact}\n\n📱 Vous recevrez un SMS de confirmation dans quelques instants et un rappel automatique 24h avant votre réservation.\n\n🎉 À très bientôt au Clair de Lune !\n\nAutre chose pour vous aider ?`;
+                    } else {
+                        return `✅ **Reservation confirmed!**\n\n📋 Summary:\n• Name: ${summary.name}\n• Date: ${summary.date}\n• Time: ${summary.time}\n• People: ${summary.people}\n• Contact: ${summary.contact}\n\n📱 You'll receive a confirmation SMS shortly and an automatic reminder 24h before your reservation.\n\n🎉 See you soon at Le Clair de Lune!\n\nAnything else I can help with?`;
+                    }
+                }
+            }
+
+            // DÉMARRER UNE RÉSERVATION
+            if (msg.includes('réserv') || msg.includes('book') || msg.includes('table')) {
+                conversationState.bookingInProgress = true;
+                conversationState.step = 'date';
+                conversationState.data = { date: null, time: null, people: null, name: null, contact: null };
+                updateBookingTracker();
+                
+                if (lang === 'fr') {
+                    return `Excellent ! Je vais prendre votre réservation. 📅\n\nPour quelle date souhaitez-vous réserver ?\n\n(Exemples : "Demain", "Vendredi 21 février", "Ce soir")`;
+                } else {
+                    return `Excellent! I'll take your reservation. 📅\n\nFor which date would you like to book?\n\n(Examples: "Tomorrow", "Friday February 21", "Tonight")`;
+                }
+            }
+
+            // ANNULATION
+            if (msg.includes('annuler') || msg.includes('cancel')) {
+                if (lang === 'fr') {
+                    return `Je comprends. Pour annuler votre réservation :\n\n📞 Appelez-nous : 0894768354\n📧 Ou écrivez-nous : kkmsh96@gmail.com\n\nMerci de nous prévenir, cela nous permet de proposer la table à d'autres clients ! 😊`;
+                } else {
+                    return `I understand. To cancel your reservation:\n\n📞 Call us: 0894768354\n📧 Or email us: kkmsh96@gmail.com\n\nThank you for letting us know, this allows us to offer the table to other guests! 😊`;
+                }
+            }
+
+            // TOILETTES
+            if (msg.includes('toilette') || msg.includes('bathroom') || msg.includes('restroom')) {
+                if (lang === 'fr') {
+                    return `Les toilettes se trouvent au fond de la salle, sur la gauche. 🚻\n\nAutre chose ?`;
+                } else {
+                    return `The bathrooms are at the back of the dining room, on the left. 🚻\n\nAnything else?`;
+                }
+            }
+
+            // WIFI
+            if (msg.includes('wifi')) {
+                if (lang === 'fr') {
+                    return `Nous avons le WiFi gratuit ! 📶\n\n**Réseau :** ClairDeLune_Guest\n**Mot de passe :** Demandez à votre serveur`;
+                } else {
+                    return `We have free WiFi! 📶\n\n**Network:** ClairDeLune_Guest\n**Password:** Ask your server`;
+                }
+            }
+
+            // HORAIRES
+            if (msg.includes('heure') || msg.includes('horaire') || msg.includes('hour') || msg.includes('open')) {
+                if (lang === 'fr') {
+                    return `Nos horaires :\n\n🍽️ **Dîner** : Lundi - Samedi\n🥗 **Déjeuner** : Jeudi - Samedi\n🚫 **Fermé** : Dimanche\n\nVoulez-vous réserver ?`;
+                } else {
+                    return `Our hours:\n\n🍽️ **Dinner**: Monday - Saturday\n🥗 **Lunch**: Thursday - Saturday\n🚫 **Closed**: Sunday\n\nWould you like to book?`;
+                }
+            }
+
+            // MENU
+            if (msg.includes('menu') || msg.includes('plat') || msg.includes('dish')) {
+                if (lang === 'fr') {
+                    return `Notre menu change quotidiennement ! 🍽️\n\n✦ Menu dégustation du chef\n✦ Cuisine française moderne\n✦ Ingrédients de saison\n\nPrix : 30-50€/personne.\n\nVoulez-vous réserver ?`;
+                } else {
+                    return `Our menu changes daily! 🍽️\n\n✦ Chef's tasting menu\n✦ Modern French cuisine\n✦ Seasonal ingredients\n\nPrice: 30-50€/person.\n\nWould you like to book?`;
+                }
+            }
+
+            // ADRESSE
+            if (msg.includes('où') || msg.includes('adresse') || msg.includes('where') || msg.includes('address')) {
+                if (lang === 'fr') {
+                    return `Nous sommes à Fitzwilliam Square ! 📍\n\n**Adresse :** 25 Fitzwilliam Square, Dublin 2, D02 XY89\n\nProche de National Gallery et St. Stephen's Green !`;
+                } else {
+                    return `We're at Fitzwilliam Square! 📍\n\n**Address:** 25 Fitzwilliam Square, Dublin 2, D02 XY89\n\nClose to National Gallery and St. Stephen's Green!`;
+                }
+            }
+
+            // CONTACT
+            if (msg.includes('contact') || msg.includes('téléphone') || msg.includes('phone')) {
+                if (lang === 'fr') {
+                    return `Nos coordonnées : 📞\n\n**Téléphone :** 0894768354\n**Email :** kkmsh96@gmail.com`;
+                } else {
+                    return `Our contact details: 📞\n\n**Phone:** 0894768354\n**Email:** kkmsh96@gmail.com`;
+                }
+            }
+
+            // PAR DÉFAUT
+            if (lang === 'fr') {
+                return `Je peux vous aider avec :\n\n✦ **Réservations** (je prends toutes les infos)\n✦ Horaires et menu\n✦ Annulations/Modifications\n✦ Infos pratiques (WiFi, toilettes, etc.)\n\nQue souhaitez-vous faire ? 😊`;
+            } else {
+                return `I can help you with:\n\n✦ **Reservations** (I'll collect all the details)\n✦ Hours and menu\n✦ Cancellations/Modifications\n✦ Practical info (WiFi, bathrooms, etc.)\n\nWhat would you like to do? 😊`;
+            }
+        }
+
+        // Ajouter un message
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const senderLabel = sender === 'user' ? 'You / Vous' : 'RestauBot IA';
+            
+            messageDiv.innerHTML = `
+                <div class="message-sender">${senderLabel}</div>
+                <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Indicateur de frappe
+        function showTyping() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const indicator = document.createElement('div');
+            indicator.className = 'message bot';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = `
+                <div class="message-sender">RestauBot IA</div>
+                <div class="typing-indicator active">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                </div>
+            `;
+            messagesDiv.appendChild(indicator);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function hideTyping() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        // Envoyer un message
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+            showTyping();
+
+            setTimeout(() => {
+                hideTyping();
+                const response = getAIResponse(message);
+                addMessage(response, 'bot');
+            }, 1200);
+        }
+
+        // Message rapide
+        function quickMessage(message) {
+            addMessage(message, 'user');
+            showTyping();
+
+            setTimeout(() => {
+                hideTyping();
+                const response = getAIResponse(message);
+                addMessage(response, 'bot');
+            }, 1200);
+        }
+
+        // Event listeners
+        document.getElementById('sendButton').addEventListener('click', sendMessage);
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Message de bienvenue
+        setTimeout(() => {
+            addMessage("Essayez de dire 'Réserver une table' ou 'Book a table' pour voir comment je collecte les informations ! 🎯", 'bot');
+        }, 2000);
+    </script>
+</body>
+</html>
